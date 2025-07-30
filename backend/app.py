@@ -7,15 +7,15 @@ from prince import MCA
 
 app = Flask(__name__)
 
-# Configuration MariaDB
+# ✅ Configuration Clever Cloud MariaDB
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://ukwtyvvtik2w6odv:7eiWdsa3D9uFgx6C3839@b6vaznojesiptr4yi4p8-mysql.services.clever-cloud.com:3306/b6vaznojesiptr4yi4p8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-# Activer CORS pour toutes les routes /api/*, autoriser toutes origines (à restreindre en prod)
+# ✅ CORS pour le frontend
 CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
 
-# Token admin (à stocker plus sécuritairement en prod)
+# ✅ Token d'accès à l’analyse (en prod, stocker dans variable d’environnement)
 SECRET_ADMIN_TOKEN = "lolipop-c-le-top"
 
 @app.route('/')
@@ -29,7 +29,6 @@ def init_db():
     return 'Tables créées avec succès.'
 
 def safe_bool(value):
-    # Convertit une valeur en booléen, même si None ou autre
     return bool(value) if value is not None else False
 
 @app.route('/api/soumettre', methods=['POST'])
@@ -93,8 +92,7 @@ def soumettre():
 
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": "Erreur interne serveur : " + str(e)}), 500
-
+        return jsonify({"error": f"Erreur interne serveur : {str(e)}"}), 500
 
 @app.route('/api/analyse', methods=['GET'])
 def analyse():
@@ -114,60 +112,46 @@ def analyse():
             'experience': r.experience,
             'frequence_utilisation': r.frequence_utilisation,
             'anciennete_systeme': r.anciennete_systeme,
-
             'probleme_attente': r.probleme_attente,
             'probleme_saisie': r.probleme_saisie,
             'probleme_disponibilite': r.probleme_disponibilite,
             'probleme_autre': r.probleme_autre,
-
             'obstacle_formation': r.obstacle_formation,
             'obstacle_interface': r.obstacle_interface,
             'obstacle_support': r.obstacle_support,
             'obstacle_bugs': r.obstacle_bugs,
             'obstacle_aucun': r.obstacle_aucun,
-
             'facilite_utilisation': r.facilite_utilisation,
             'satisfaction': r.satisfaction,
-
             'fonction_reservation_en_ligne': r.fonction_reservation_en_ligne,
             'fonction_notification': r.fonction_notification,
             'fonction_gestion_rdv': r.fonction_gestion_rdv,
             'fonction_autre': r.fonction_autre,
-
             'ameliorer_rapidite': r.ameliorer_rapidite,
             'ameliorer_interface': r.ameliorer_interface,
             'ameliorer_precision': r.ameliorer_precision,
             'ameliorer_support': r.ameliorer_support,
             'ameliorer_doc': r.ameliorer_doc,
-
             'souhaite_formation': r.souhaite_formation,
             'prefere_version': r.prefere_version,
-
             'incident_securite': r.incident_securite,
             'confiance_securite': r.confiance_securite,
-
             'notif_sms': r.notif_sms,
             'notif_email': r.notif_email,
             'notif_app': r.notif_app,
             'notif_appel': r.notif_appel,
             'notif_aucun': r.notif_aucun,
-
             'souhaite_avis': r.souhaite_avis,
             'commentaire': r.commentaire,
             'importance_securite': r.importance_securite
         } for r in reponses]
 
         df = pd.DataFrame(data).fillna("Inconnu")
-
         mca = MCA(n_components=2, random_state=42)
         coords = mca.fit(df).transform(df)
         coords_dict = coords.to_dict(orient='records')
 
-        inertia = []
-        try:
-            inertia = list(mca.explained_inertia_)
-        except AttributeError:
-            inertia = []
+        inertia = list(getattr(mca, "explained_inertia_", []))
 
         return jsonify({
             "coords": coords_dict,
@@ -176,10 +160,7 @@ def analyse():
         })
 
     except Exception as e:
-        return jsonify({"error": "Erreur interne serveur : " + str(e)}), 500
-
+        return jsonify({"error": f"Erreur interne serveur : {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # En dev uniquement, pour prod utiliser gunicorn ou autre WSGI
-    app.run(host='0.0.0.0', port=5088, debug=True)
-
+    app.run(host='0.0.0.0', port=5088, debug=True)  # ⚠️ debug=True à désactiver en production
