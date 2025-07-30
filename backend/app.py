@@ -4,6 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 from models.models import db, Reponse
 from prince import MCA
+import traceback
+import sys
 
 app = Flask(__name__)
 
@@ -15,12 +17,16 @@ db.init_app(app)
 # ✅ CORS pour le frontend
 CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
 
-# ✅ Token d'accès à l’analyse (en prod, stocker dans variable d’environnement)
+# ✅ Token d'accès à l’analyse (à stocker dans une variable d’environnement en production)
 SECRET_ADMIN_TOKEN = "lolipop-c-le-top"
 
 @app.route('/')
 def index():
-    return 'Hello'
+    return 'Hello depuis Flask'
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "OK"}), 200
 
 @app.route('/init-db')
 def init_db():
@@ -33,11 +39,12 @@ def safe_bool(value):
 
 @app.route('/api/soumettre', methods=['POST'])
 def soumettre():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Données manquantes ou mal formatées."}), 400
-
     try:
+        data = request.get_json()
+        print("✅ Données reçues :", data, file=sys.stderr)  # log visible dans Render
+        if not data:
+            return jsonify({"error": "Données manquantes ou mal formatées."}), 400
+
         reponse = Reponse(
             role=data.get('role'),
             role_autre=data.get('role_autre'),
@@ -86,12 +93,15 @@ def soumettre():
             commentaire=data.get('commentaire'),
             importance_securite=data.get('importance_securite')
         )
+
         db.session.add(reponse)
         db.session.commit()
         return jsonify({"message": "Réponse enregistrée avec succès."}), 201
 
     except Exception as e:
         db.session.rollback()
+        print("❌ Erreur pendant /api/soumettre :", str(e), file=sys.stderr)
+        traceback.print_exc()
         return jsonify({"error": f"Erreur interne serveur : {str(e)}"}), 500
 
 @app.route('/api/analyse', methods=['GET'])
@@ -150,7 +160,6 @@ def analyse():
         mca = MCA(n_components=2, random_state=42)
         coords = mca.fit(df).transform(df)
         coords_dict = coords.to_dict(orient='records')
-
         inertia = list(getattr(mca, "explained_inertia_", []))
 
         return jsonify({
@@ -160,7 +169,9 @@ def analyse():
         })
 
     except Exception as e:
+        print("❌ Erreur analyse :", str(e), file=sys.stderr)
+        traceback.print_exc()
         return jsonify({"error": f"Erreur interne serveur : {str(e)}"}), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5088, debug=True)  # ⚠️ debug=True à désactiver en production
+    app.run(host='0.0.0.0', port=5088, debug=True)
