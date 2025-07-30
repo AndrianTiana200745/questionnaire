@@ -76,7 +76,7 @@ export default function QuestionnaireForm() {
     setResultat(null);
     setLoadingSubmit(true);
     try {
-      const res = await fetch('https://192.168.137.28:5088/api/soumettre', {
+      const res = await fetch('https://questionnaire-3ztt.onrender.com/api/soumettre', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -106,7 +106,7 @@ export default function QuestionnaireForm() {
     setResultat(null);
     setLoadingAnalyse(true);
     try {
-      const res = await fetch('https://192.168.137.28:5088/api/analyse', {
+      const res = await fetch('https://questionnaire-3ztt.onrender.com/api/analyse', {
         headers: { Authorization: `Bearer ${adminToken}` },
       });
       const data = await res.json();
@@ -495,4 +495,3 @@ export default function QuestionnaireForm() {
     </div>
   );
 }
-
