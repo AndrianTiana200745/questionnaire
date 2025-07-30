@@ -8,7 +8,7 @@ from prince import MCA
 app = Flask(__name__)
 
 # Configuration MariaDB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://andrian:tonmotdepasse@localhost:3306/questionnaire'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://ukwtyvvtik2w6odv:7eiWdsa3D9uFgx6C3839@b6vaznojesiptr4yi4p8-mysql.services.clever-cloud.com:3306/b6vaznojesiptr4yi4p8'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
