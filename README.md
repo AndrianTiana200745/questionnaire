@@ -53,7 +53,7 @@ questionnaire/
 2. Installe l'environnement virtuel et les dépendances :
     ```bash
     python3 -m venv .venv
-    source .venv/bin/activate
+    source .venv/bin/activate   # .venv/script/activate pour windows
     pip install -r requirements.txt
     ```
 3. Configure la base de données (voir `app.py` pour la chaîne de connexion MariaDB).
