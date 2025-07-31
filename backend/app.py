@@ -19,8 +19,7 @@ CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "*"}})
 
 # ✅ Token d'accès à l’analyse (à stocker dans une variable d’environnement en production)
 SECRET_ADMIN_TOKEN = "lolipop-c-le-top"
-@app.before_first_request
-def create_tables():
+with app.app_context():
     db.create_all()
 
 @app.route('/')
